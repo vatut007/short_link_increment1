@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -26,7 +25,7 @@ func createShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain")
 	url := "http://" + domain + "/" + originalURL + "ffffff"
 	body := strings.ReplaceAll(url, " ", "")
-	fmt.Print(body)
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(body))
 }
 
