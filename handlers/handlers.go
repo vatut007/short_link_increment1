@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
+	"shortener/store"
+	"shortener/utils"
 	"strings"
 )
 
@@ -13,25 +16,28 @@ func createShorten(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, "Content type must be text/plain", http.StatusUnsupportedMediaType)
 	// 	return
 	// }
-	// bodyBytes, err := io.ReadAll(r.Body)
-	// if err != nil {
-	// 	http.Error(w, "Error reading request body", http.StatusBadRequest)
-	// 	return
-	// }
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
 	defer r.Body.Close()
 	domain := r.Host
-	// originalURL := string(bodyBytes)
+	originalURL := string(bodyBytes)
 	w.Header().Set("content-type", "text/plain")
-	url := "http://" + domain + "/" + "ffffff"
+	code := utils.GenerateShortCodeUrl(originalURL)
+	url := "http://" + domain + "/" + code
 	body := strings.ReplaceAll(url, " ", "")
+	store.Store[url] = originalURL
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(body))
 }
 
 func getShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain")
-	http.Redirect(w, r, "https://practicum.yandex.ru/", http.StatusTemporaryRedirect)
-
+	path := r.URL.Path
+	shortUrl := string(path)
+	http.Redirect(w, r, store.Store[shortUrl], http.StatusTemporaryRedirect)
 }
 
 func ShortLinkHandler(w http.ResponseWriter, r *http.Request) {
