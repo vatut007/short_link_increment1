@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"shortener/store"
@@ -38,8 +37,12 @@ func getShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain")
 	path := r.URL.Path
 	shortUrl := "http://" + r.Host + string(path)
-	fmt.Print(store.Store[shortUrl])
-	http.Redirect(w, r, store.Store[shortUrl], http.StatusTemporaryRedirect)
+	originalUrl, exists := store.Store[shortUrl]
+	if !exists {
+		http.Error(w, "Short url not found", http.StatusNotFound)
+		return
+	}
+	http.Redirect(w, r, originalUrl, http.StatusTemporaryRedirect)
 }
 
 func ShortLinkHandler(w http.ResponseWriter, r *http.Request) {
