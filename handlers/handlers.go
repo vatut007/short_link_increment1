@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"shortener/store"
@@ -36,7 +37,8 @@ func createShorten(w http.ResponseWriter, r *http.Request) {
 func getShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain")
 	path := r.URL.Path
-	shortUrl := string(path)
+	shortUrl := "http://" + r.Host + string(path)
+	fmt.Print(store.Store[shortUrl])
 	http.Redirect(w, r, store.Store[shortUrl], http.StatusTemporaryRedirect)
 }
 
