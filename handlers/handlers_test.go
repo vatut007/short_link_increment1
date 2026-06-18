@@ -4,16 +4,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_handlers(t *testing.T) {
+func Test_create_handlers(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
 	}
 	tests := []struct {
@@ -23,15 +23,14 @@ func Test_handlers(t *testing.T) {
 		{
 			name: "test create shorten",
 			want: want{
-				code:        200,
-				response:    `{"status":"creaete"}`,
-				contentType: "application/json",
+				code:        201,
+				contentType: "text/plain",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodGet, "/status", nil)
+			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://www.yandex.ru"))
 			w := httptest.NewRecorder()
 			createShorten(w, request)
 			res := w.Result()
@@ -40,8 +39,46 @@ func Test_handlers(t *testing.T) {
 			resBody, err := io.ReadAll(res.Body)
 
 			require.NoError(t, err)
-			assert.JSONEq(t, string(resBody), test.want.response)
+			assert.Regexp(t, `^http://example\.com/[A-Za-z0-9+/]{8}$`, string(resBody))
 			assert.Equal(t, res.Header.Get("Content-Type"), test.want.contentType)
+		})
+	}
+}
+
+func Test_get_handlers(t *testing.T) {
+	type want struct {
+		code        int
+		contentType string
+	}
+	tests := []struct {
+		name string
+		want want
+	}{
+		{
+			name: "test create shorten",
+			want: want{
+				code:        307,
+				contentType: "text/plain",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://www.yandex.ru"))
+			w := httptest.NewRecorder()
+			createShorten(w, request)
+			res := w.Result()
+			defer res.Body.Close()
+			resBody, err := io.ReadAll(res.Body)
+			require.NoError(t, err)
+			gw := httptest.NewRecorder()
+			getRequest := httptest.NewRequest(http.MethodGet, string(resBody), nil)
+			getShorten(gw, getRequest)
+			gres := gw.Result()
+			defer gres.Body.Close()
+			_, errgres := io.ReadAll(gres.Body)
+			require.NoError(t, errgres)
+			assert.Equal(t, gres.StatusCode, test.want.code)
 		})
 	}
 }
