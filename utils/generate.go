@@ -7,6 +7,6 @@ import (
 
 func GenerateShortCodeUrl(originalURL string) string {
 	hash := fmt.Sprintf("%x", []byte(originalURL))
-	encoded := base64.StdEncoding.EncodeToString([]byte(hash))
+	encoded := base64.RawURLEncoding.EncodeToString([]byte(hash))
 	return encoded[:8]
 }

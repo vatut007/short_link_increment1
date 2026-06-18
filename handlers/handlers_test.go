@@ -31,6 +31,7 @@ func Test_create_handlers(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://www.yandex.ru"))
+			request.Header.Set("Content-Type", "text/plain")
 			w := httptest.NewRecorder()
 			createShorten(w, request)
 			res := w.Result()
@@ -65,6 +66,7 @@ func Test_get_handlers(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://www.yandex.ru"))
+			request.Header.Set("Content-Type", "text/plain")
 			w := httptest.NewRecorder()
 			createShorten(w, request)
 			res := w.Result()
@@ -73,12 +75,13 @@ func Test_get_handlers(t *testing.T) {
 			require.NoError(t, err)
 			gw := httptest.NewRecorder()
 			getRequest := httptest.NewRequest(http.MethodGet, string(resBody), nil)
+			getRequest.Header.Set("Content-Type", "text/plain")
 			getShorten(gw, getRequest)
 			gres := gw.Result()
 			defer gres.Body.Close()
 			_, errgres := io.ReadAll(gres.Body)
 			require.NoError(t, errgres)
-			assert.Equal(t, gres.StatusCode, test.want.code)
+			assert.Equal(t, test.want.code, gres.StatusCode)
 		})
 	}
 }

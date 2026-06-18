@@ -1,3 +1,5 @@
 package store
 
-var Store = map[string]string{}
+import "sync"
+
+var Store sync.Map
