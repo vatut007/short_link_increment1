@@ -24,20 +24,22 @@ func createShorten(w http.ResponseWriter, r *http.Request) {
 	}
 	domain := r.Host
 	originalURL := string(bodyBytes)
+	if strings.TrimSpace(originalURL) == "" {
+		http.Error(w, "Url is empty", http.StatusBadRequest)
+		return
+	}
 	w.Header().Set("content-type", "text/plain")
 	code := utils.GenerateShortCodeUrl(originalURL)
 	url := "http://" + domain + "/" + code
-	body := strings.ReplaceAll(url, " ", "")
 	store.Store.Store(code, originalURL)
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(body))
+	w.Write([]byte(url))
 }
 
 func getShorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain")
-	path := r.URL.Path
-	shortUrl := "http://" + r.Host + string(path)
-	val, exists := store.Store.Load(shortUrl)
+	code := strings.TrimPrefix(r.URL.Path, "/")
+	val, exists := store.Store.Load(code)
 	if !exists {
 		http.Error(w, "Short url not found", http.StatusBadRequest)
 		return

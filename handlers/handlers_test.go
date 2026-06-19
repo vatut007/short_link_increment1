@@ -35,13 +35,13 @@ func Test_create_handlers(t *testing.T) {
 			w := httptest.NewRecorder()
 			createShorten(w, request)
 			res := w.Result()
-			assert.Equal(t, res.StatusCode, test.want.code)
+			assert.Equal(t, test.want.code, res.StatusCode)
 			defer res.Body.Close()
 			resBody, err := io.ReadAll(res.Body)
 
 			require.NoError(t, err)
-			assert.Regexp(t, `^http://example\.com/[A-Za-z0-9+/]{8}$`, string(resBody))
-			assert.Equal(t, res.Header.Get("Content-Type"), test.want.contentType)
+			assert.Regexp(t, `^http://example\.com/[A-Za-z0-9]{8}$`, string(resBody))
+			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
 		})
 	}
 }
@@ -56,7 +56,7 @@ func Test_get_handlers(t *testing.T) {
 		want want
 	}{
 		{
-			name: "test create shorten",
+			name: "test get original link",
 			want: want{
 				code:        307,
 				contentType: "text/plain",
